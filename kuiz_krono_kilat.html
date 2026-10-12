@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kuiz Krono Kilat: Cabaran Kelajuan Masa (Tahun 4)</title>
+
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Google Fonts & Canvas Confetti -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700;800&family=Quicksand:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Fredoka', cursive, sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .font-math {
+      font-family: 'Quicksand', sans-serif;
+    }
+
+    /* Vibrant & Light Backgrounds across 4 Stages */
+    .bg-quiz-stage1 {
+      background: linear-gradient(135deg, #fefce8 0%, #ecfeff 50%, #f0fdf4 100%);
+    }
+    .bg-quiz-stage2 {
+      background: linear-gradient(135deg, #fef9c3 0%, #ecfdf5 50%, #dbeafe 100%);
+    }
+    .bg-quiz-stage3 {
+      background: linear-gradient(135deg, #ffedd5 0%, #fef3c7 50%, #e0e7ff 100%);
+    }
+    .bg-quiz-stage4 {
+      background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 50%, #fae8ff 100%);
+    }
+
+    /* Wrong answer shake animation */
+    @keyframes optShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .shake-anim {
+      animation: optShake 0.35s ease-in-out both;
+    }
+
+    /* Pulse Glow for Countdown Warning */
+    @keyframes warningPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      50% { transform: scale(1.02); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    }
+    .warning-pulse {
+      animation: warningPulse 0.6s infinite ease-in-out;
+    }
+
+    /* Pulse glow for correct selection */
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 2px #f59e0b, 0 4px 12px rgba(245, 158, 11, 0.2); }
+      50% { box-shadow: 0 0 0 4px #10b981, 0 6px 16px rgba(16, 185, 129, 0.35); }
+    }
+    .glow-active {
+      animation: pulseGlow 1.8s infinite alternate;
+    }
+
+    /* Ambient Shapes */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(4deg); }
+    }
+    .float-slow {
+      animation: floatSlow 5s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body id="quiz-body" class="bg-quiz-stage1 min-h-screen text-slate-800 flex flex-col justify-between relative overflow-x-hidden transition-all duration-500">
+
+  <!-- Ambient Light Floating Deco -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-40">
+    <div class="absolute -top-10 -left-10 w-64 h-64 bg-amber-200/60 rounded-full blur-3xl float-slow"></div>
+    <div class="absolute top-1/2 -right-12 w-72 h-72 bg-emerald-200/60 rounded-full blur-3xl float-slow" style="animation-delay: -2s;"></div>
+    <div class="absolute -bottom-10 left-1/3 w-80 h-80 bg-sky-200/60 rounded-full blur-3xl float-slow" style="animation-delay: -3.5s;"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="w-full max-w-3xl mx-auto px-4 pt-3 pb-1 z-10">
+    <div class="bg-white/95 backdrop-blur-md border-2 border-amber-300 rounded-3xl p-3 shadow-md flex items-center justify-between gap-2">
+      
+      <!-- Stage & Topic Title -->
+      <div class="flex items-center space-x-2.5">
+        <div id="stage-badge-icon" class="w-11 h-11 rounded-2xl bg-teal-500 text-white font-extrabold flex items-center justify-center text-2xl shadow-sm border border-white">
+          🎯
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span id="stage-tag" class="text-xs bg-teal-600 text-white font-extrabold px-2.5 py-0.5 rounded-full shadow-sm">
+              Tahap 1 / 4
+            </span>
+            <span id="stage-name-text" class="text-xs sm:text-sm font-extrabold text-slate-800">
+              Operasi Tambah / Tolak Unit Sama Sahaja
+            </span>
+          </div>
+          <p id="stage-desc-text" class="text-[11px] font-semibold text-slate-500">
+            Jam • Hari • Minggu • Bulan • Tahun • Dekad • Abad
+          </p>
+        </div>
+      </div>
+
+      <!-- Live Speed Animal Meter & Sound Toggle -->
+      <div class="flex items-center space-x-2">
+        <!-- Live Animal Meter Pill -->
+        <div id="live-speed-badge" class="bg-amber-50 border-2 border-amber-300 px-3 py-1 rounded-2xl flex items-center gap-1.5 shadow-sm transition-all" title="Gred Kelajuan Terkini Anda">
+          <span id="live-animal-icon" class="text-2xl animate-bounce" style="animation-duration: 1.5s;">🐆</span>
+          <div class="text-left leading-tight hidden sm:block">
+            <span class="text-[9px] uppercase font-bold text-amber-700 block">Zon Semasa:</span>
+            <span id="live-animal-name" class="text-xs font-black text-slate-900">Cheetah</span>
+          </div>
+        </div>
+
+        <!-- Sound Toggle -->
+        <button id="btn-sound-toggle" class="p-2.5 rounded-2xl bg-amber-100 hover:bg-amber-200 border-2 border-amber-300 text-amber-700 active:scale-95 transition flex items-center justify-center" title="Buka/Tutup Bunyi">
+          <i data-lucide="volume-2" id="icon-sound" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Progress Bar & Question Stats -->
+  <section class="w-full max-w-3xl mx-auto px-4 z-10 my-1">
+    <div class="bg-white/90 border border-amber-200 rounded-2xl p-2.5 shadow-sm flex items-center justify-between gap-3 text-xs">
+      
+      <!-- Question index -->
+      <div class="flex items-center gap-2">
+        <span class="font-extrabold text-amber-700 uppercase tracking-wide">Soalan:</span>
+        <span id="stat-progress-text" class="font-black text-slate-800 font-math text-sm bg-amber-100 px-2 py-0.5 rounded-lg">1 / 10</span>
+      </div>
+
+      <!-- Current Stage Score -->
+      <div class="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl">
+        <i data-lucide="award" class="w-4 h-4 text-emerald-600"></i>
+        <span class="font-bold text-emerald-700 text-[11px]">Markah:</span>
+        <span id="stat-score-live" class="font-black text-emerald-800 font-math text-sm">0</span>
+      </div>
+
+      <!-- Countdown Digital Timer Display -->
+      <div id="timer-pill-container" class="flex items-center gap-1.5 bg-amber-50 border border-amber-300 px-3 py-1 rounded-xl transition-all">
+        <i data-lucide="timer" id="timer-icon" class="w-4 h-4 text-amber-600 animate-spin" style="animation-duration: 8s;"></i>
+        <span class="font-bold text-slate-600 text-[11px]">Baki Masa:</span>
+        <span id="stat-timer-countdown" class="font-black text-amber-800 font-math text-sm tracking-wider">40.0s</span>
+      </div>
+    </div>
+
+    <!-- Overall 10 Questions Progress -->
+    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mt-1.5 border border-white">
+      <div id="progress-bar-fill" class="bg-gradient-to-r from-teal-400 to-emerald-500 h-full transition-all duration-300" style="width: 10%;"></div>
+    </div>
+  </section>
+
+  <!-- PROMINENT COUNTDOWN TIMER BAR WITH ANIMAL SPEED ZONES -->
+  <section class="w-full max-w-3xl mx-auto px-4 z-10 my-1">
+    <div class="bg-white/95 border-2 border-amber-300 rounded-2xl p-3 shadow-md relative">
+      <div class="flex items-center justify-between text-xs font-bold mb-1.5 px-0.5">
+        <div class="flex items-center gap-1.5 text-slate-700">
+          <i data-lucide="gauge" class="w-4 h-4 text-amber-600"></i>
+          <span>Bar Penilai Kelajuan (Countdown):</span>
+        </div>
+        <div id="countdown-tier-callout" class="font-black text-amber-600 flex items-center gap-1 bg-amber-100/80 px-2 py-0.5 rounded-lg">
+          <span>Zon Cheetah (Laju Maksimum!)</span> ⚡
+        </div>
+      </div>
+
+      <!-- Dynamic Countdown Progress Track -->
+      <div class="w-full bg-slate-100 h-6 rounded-xl overflow-hidden p-0.5 border-2 border-slate-300 relative shadow-inner">
+        <!-- Countdown Fill Bar -->
+        <div id="countdown-bar-fill" class="h-full rounded-lg transition-all duration-75 relative bg-gradient-to-r from-amber-400 to-yellow-400 shadow-sm" style="width: 100%;">
+          <!-- Shimmer line on the tip -->
+          <div class="absolute right-0 top-0 bottom-0 w-2 bg-white/70 rounded-r-md animate-pulse"></div>
+        </div>
+
+        <!-- Speed Tier Benchmark Markers (8s, 15s, 25s elapsed = 80%, 62.5%, 37.5% remaining) -->
+        <div class="absolute inset-0 pointer-events-none flex text-[9px] font-black text-slate-600">
+          <!-- Cheetah Threshold (after 8s elapsed -> 32s left / 80% mark) -->
+          <div class="absolute top-0 bottom-0 border-r-2 border-dashed border-amber-600/50" style="left: 80%;">
+            <span class="absolute -top-0.5 -right-3.5 text-xs">🐆</span>
+          </div>
+          <!-- Lion Threshold (after 15s elapsed -> 25s left / 62.5% mark) -->
+          <div class="absolute top-0 bottom-0 border-r-2 border-dashed border-orange-600/50" style="left: 62.5%;">
+            <span class="absolute -top-0.5 -right-3.5 text-xs">🦁</span>
+          </div>
+          <!-- Buffalo Threshold (after 25s elapsed -> 15s left / 37.5% mark) -->
+          <div class="absolute top-0 bottom-0 border-r-2 border-dashed border-emerald-600/50" style="left: 37.5%;">
+            <span class="absolute -top-0.5 -right-3 text-xs">🐃</span>
+          </div>
+          <!-- Dog / Turtle Threshold (under 15s left) -->
+          <div class="absolute top-0 bottom-0 border-r-2 border-dashed border-sky-600/50" style="left: 15%;">
+            <span class="absolute -top-0.5 -right-3 text-xs">🐕</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Marker Legend Below Bar -->
+      <div class="flex justify-between text-[10px] font-extrabold text-slate-500 mt-1 px-1">
+        <span class="text-rose-600">0s (Tamat)</span>
+        <span class="text-sky-600">15s (Anjing)</span>
+        <span class="text-emerald-700">25s (Kerbau)</span>
+        <span class="text-orange-600">32s (Singa)</span>
+        <span class="text-amber-700">40s (Cheetah)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Question Box -->
+  <main class="w-full max-w-3xl mx-auto px-4 py-1 flex-1 flex flex-col justify-center z-10">
+    <div id="question-card" class="bg-white border-4 border-amber-300 rounded-3xl p-5 sm:p-6 shadow-xl relative transition-all">
+      
+      <!-- Unit Category Tip Tag -->
+      <div class="flex items-center justify-between border-b-2 border-amber-100 pb-2.5 mb-3.5">
+        <span id="question-category-tag" class="text-xs bg-emerald-100 text-emerald-800 font-extrabold px-3 py-1 rounded-full border border-emerald-300 flex items-center gap-1">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span id="category-name">Unit Masa yang Sama</span>
+        </span>
+        <span id="unit-reference-tag" class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+          Operasi Terus Asas
+        </span>
+      </div>
+
+      <!-- Question Text -->
+      <div class="text-center my-2">
+        <h2 id="question-prompt" class="text-slate-800 text-sm sm:text-base font-bold mb-2">
+          Kira ayat matematik berikut:
+        </h2>
+        <div id="math-expression-display" class="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 font-math bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 py-3.5 px-4 rounded-2xl border-2 border-amber-200 shadow-inner">
+          16 jam + 18 jam = ?
+        </div>
+      </div>
+
+      <!-- 4 Answer Options Grid -->
+      <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5 mt-5">
+        <!-- Buttons rendered via JS -->
+      </div>
+
+      <!-- Hint and Scratchpad Helper -->
+      <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+        <div class="flex items-center gap-1 font-semibold">
+          <i data-lucide="lightbulb" class="w-4 h-4 text-amber-500"></i>
+          <span id="question-hint-text">Tip: Tambahkan nombor dengan unit yang sama.</span>
+        </div>
+        <span class="text-[11px] text-slate-400 font-medium hidden sm:inline">Pantas & Tepat untuk Skor Maksimum! ⚡</span>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Speed Tier Reference Card Footer -->
+  <footer class="w-full max-w-3xl mx-auto px-4 py-2 z-10">
+    <div class="bg-white/80 border border-amber-200 rounded-2xl p-2 px-3 shadow-sm flex flex-wrap items-center justify-between text-[11px] font-bold text-slate-600 gap-1.5">
+      <span class="text-amber-800 uppercase text-[10px] tracking-wider">Tahap Kelajuan:</span>
+      <span class="flex items-center gap-1 text-amber-600">🐆 Cheetah (&lt;8s)</span>
+      <span class="flex items-center gap-1 text-orange-600">🦁 Singa (8-15s)</span>
+      <span class="flex items-center gap-1 text-emerald-700">🐃 Kerbau (16-25s)</span>
+      <span class="flex items-center gap-1 text-sky-700">🐕 Anjing (26-40s)</span>
+      <span class="flex items-center gap-1 text-slate-500">🐢 Kura-kura (Tamat Masa)</span>
+    </div>
+  </footer>
+
+  <!-- MODAL: STAGE RESULT & SPEED RANKING -->
+  <div id="modal-stage-summary" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white border-4 border-amber-400 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl relative transform transition-all scale-100">
+      
+      <!-- Animal Avatar Badge -->
+      <div id="summary-animal-badge" class="w-20 h-20 rounded-3xl bg-amber-100 border-4 border-amber-400 mx-auto flex items-center justify-center text-5xl mb-3 shadow-md animate-bounce" style="animation-duration: 2s;">
+        🐆
+      </div>
+
+      <span id="summary-tier-badge" class="text-xs bg-amber-500 text-white font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
+        GRED: CHEETAH (PALING LAJU!)
+      </span>
+
+      <h2 id="summary-stage-title" class="text-xl sm:text-2xl font-black text-slate-900 mt-2">
+        TAHNIAH! TAHAP 1 SELESAI!
+      </h2>
+      <p id="summary-feedback-msg" class="text-xs font-semibold text-slate-600 mt-1">
+        Refleks anda sungguh mengagumkan! Anda berfikir sepantas kilat seperti seekor Cheetah.
+      </p>
+
+      <!-- Stats Grid -->
+      <div class="my-4 p-3.5 bg-amber-50 border-2 border-amber-200 rounded-2xl grid grid-cols-3 gap-2 text-center text-xs">
+        <div>
+          <span class="text-slate-500 text-[10px] block font-bold uppercase">Ketepatan</span>
+          <span id="sum-stat-accuracy" class="text-base font-black text-emerald-600 font-math">10 / 10</span>
+        </div>
+        <div class="border-x border-amber-200">
+          <span class="text-slate-500 text-[10px] block font-bold uppercase">Purata Masa</span>
+          <span id="sum-stat-avgtime" class="text-base font-black text-sky-600 font-math">5.4s</span>
+        </div>
+        <div>
+          <span class="text-slate-500 text-[10px] block font-bold uppercase">Markah</span>
+          <span id="sum-stat-score" class="text-base font-black text-amber-700 font-math">1,000</span>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button id="btn-next-stage-action" class="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 active:scale-95 text-slate-900 font-black text-sm shadow-md transition flex items-center justify-center gap-2">
+        <span id="btn-next-stage-text">Maju ke Tahap 2 ➔</span>
+      </button>
+
+      <button id="btn-replay-stage-action" class="w-full mt-2 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-extrabold text-xs transition">
+        Ulang Tahap Ini (Cuba Lebih Laju) ↺
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /* ========================================================================
+       1. WEB AUDIO SYNTHESIZER (Tepukan, Fanfare, Buzzer, Detik Jam)
+       ======================================================================== */
+    const AudioEngine = {
+      ctx: null,
+      enabled: true,
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      },
+
+      ensureReady() {
+        this.init();
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+
+      playClap() {
+        if (!this.enabled) return;
+        this.ensureReady();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const delays = [0.0, 0.05, 0.11, 0.17, 0.23, 0.30];
+        delays.forEach(d => {
+          const bufferSize = Math.floor(this.ctx.sampleRate * 0.04);
+          const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+          }
+
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(1200, now + d);
+          filter.Q.setValueAtTime(2.2, now + d);
+
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.32, now + d);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + d + 0.045);
+
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          noise.start(now + d);
+        });
+
+        // Cheerful major arpeggio
+        const tones = [523.25, 659.25, 783.99, 1046.5];
+        tones.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + 0.03 + idx * 0.06);
+
+          gain.gain.setValueAtTime(0.2, now + 0.03 + idx * 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2 + idx * 0.06);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start(now + 0.03 + idx * 0.06);
+          osc.stop(now + 0.22 + idx * 0.06);
+        });
+      },
+
+      playBuzzer() {
+        if (!this.enabled) return;
+        this.ensureReady();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        [0.0, 0.15].forEach(d => {
+          const osc1 = this.ctx.createOscillator();
+          const osc2 = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc1.type = 'sawtooth';
+          osc1.frequency.setValueAtTime(110, now + d);
+          osc2.type = 'sawtooth';
+          osc2.frequency.setValueAtTime(118, now + d);
+
+          gain.gain.setValueAtTime(0.3, now + d);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + d + 0.13);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc1.start(now + d);
+          osc2.start(now + d);
+          osc1.stop(now + d + 0.14);
+          osc2.stop(now + d + 0.14);
+        });
+      },
+
+      playTick() {
+        if (!this.enabled) return;
+        this.ensureReady();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(900, now);
+
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.03);
+      },
+
+      playClick() {
+        if (!this.enabled) return;
+        this.ensureReady();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(750, now);
+        osc.frequency.exponentialRampToValueAtTime(950, now + 0.05);
+
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.06);
+      }
+    };
+
+    /* ========================================================================
+       2. BANK SOALAN (72 SOALAN UNIK MERANGKUMI 4 TAHAP)
+       ======================================================================== */
+    const QUESTION_BANK = {
+      // ----------------------------------------------------
+      // TAHAP 1 (BARU): OPERASI TAMBAH / TOLAK UNIT SAMA SAHAJA (18 Soalan)
+      // ----------------------------------------------------
+      stage1: [
+        {
+          id: "s1_new_01",
+          category: "Unit Jam",
+          unitTip: "Tambah nilai jam yang sama",
+          hint: "16 + 18 = 34 jam.",
+          expression: "16 jam + 18 jam",
+          correctAnswer: "34 jam",
+          options: ["34 jam", "32 jam", "36 jam", "24 jam"]
+        },
+        {
+          id: "s1_new_02",
+          category: "Unit Jam",
+          unitTip: "Tolak nilai jam yang sama",
+          hint: "45 - 19 = 26 jam.",
+          expression: "45 jam - 19 jam",
+          correctAnswer: "26 jam",
+          options: ["26 jam", "24 jam", "28 jam", "36 jam"]
+        },
+        {
+          id: "s1_new_03",
+          category: "Unit Hari",
+          unitTip: "Tambah nilai hari yang sama",
+          hint: "14 + 17 = 31 hari.",
+          expression: "14 hari + 17 hari",
+          correctAnswer: "31 hari",
+          options: ["31 hari", "30 hari", "29 hari", "33 hari"]
+        },
+        {
+          id: "s1_new_04",
+          category: "Unit Hari",
+          unitTip: "Tolak nilai hari yang sama",
+          hint: "38 - 15 = 23 hari.",
+          expression: "38 hari - 15 hari",
+          correctAnswer: "23 hari",
+          options: ["23 hari", "25 hari", "21 hari", "13 hari"]
+        },
+        {
+          id: "s1_new_05",
+          category: "Unit Minggu",
+          unitTip: "Tambah nilai minggu yang sama",
+          hint: "8 + 9 = 17 minggu.",
+          expression: "8 minggu + 9 minggu",
+          correctAnswer: "17 minggu",
+          options: ["17 minggu", "16 minggu", "18 minggu", "15 minggu"]
+        },
+        {
+          id: "s1_new_06",
+          category: "Unit Minggu",
+          unitTip: "Tolak nilai minggu yang sama",
+          hint: "26 - 12 = 14 minggu.",
+          expression: "26 minggu - 12 minggu",
+          correctAnswer: "14 minggu",
+          options: ["14 minggu", "12 minggu", "16 minggu", "13 minggu"]
+        },
+        {
+          id: "s1_new_07",
+          category: "Unit Bulan",
+          unitTip: "Tambah nilai bulan yang sama",
+          hint: "15 + 18 = 33 bulan.",
+          expression: "15 bulan + 18 bulan",
+          correctAnswer: "33 bulan",
+          options: ["33 bulan", "32 bulan", "35 bulan", "23 bulan"]
+        },
+        {
+          id: "s1_new_08",
+          category: "Unit Bulan",
+          unitTip: "Tolak nilai bulan yang sama",
+          hint: "42 - 19 = 23 bulan.",
+          expression: "42 bulan - 19 bulan",
+          correctAnswer: "23 bulan",
+          options: ["23 bulan", "25 bulan", "21 bulan", "33 bulan"]
+        },
+        {
+          id: "s1_new_09",
+          category: "Unit Tahun",
+          unitTip: "Tambah nilai tahun yang sama",
+          hint: "24 + 19 = 43 tahun.",
+          expression: "24 tahun + 19 tahun",
+          correctAnswer: "43 tahun",
+          options: ["43 tahun", "41 tahun", "45 tahun", "33 tahun"]
+        },
+        {
+          id: "s1_new_10",
+          category: "Unit Tahun",
+          unitTip: "Tolak nilai tahun yang sama",
+          hint: "56 - 28 = 28 tahun.",
+          expression: "56 tahun - 28 tahun",
+          correctAnswer: "28 tahun",
+          options: ["28 tahun", "26 tahun", "30 tahun", "38 tahun"]
+        },
+        {
+          id: "s1_new_11",
+          category: "Unit Dekad",
+          unitTip: "Tambah nilai dekad yang sama",
+          hint: "17 + 15 = 32 dekad.",
+          expression: "17 dekad + 15 dekad",
+          correctAnswer: "32 dekad",
+          options: ["32 dekad", "30 dekad", "34 dekad", "22 dekad"]
+        },
+        {
+          id: "s1_new_12",
+          category: "Unit Dekad",
+          unitTip: "Tolak nilai dekad yang sama",
+          hint: "48 - 25 = 23 dekad.",
+          expression: "48 dekad - 25 dekad",
+          correctAnswer: "23 dekad",
+          options: ["23 dekad", "25 dekad", "21 dekad", "33 dekad"]
+        },
+        {
+          id: "s1_new_13",
+          category: "Unit Abad",
+          unitTip: "Tambah nilai abad yang sama",
+          hint: "9 + 8 = 17 abad.",
+          expression: "9 abad + 8 abad",
+          correctAnswer: "17 abad",
+          options: ["17 abad", "16 abad", "18 abad", "15 abad"]
+        },
+        {
+          id: "s1_new_14",
+          category: "Unit Abad",
+          unitTip: "Tolak nilai abad yang sama",
+          hint: "25 - 11 = 14 abad.",
+          expression: "25 abad - 11 abad",
+          correctAnswer: "14 abad",
+          options: ["14 abad", "13 abad", "15 abad", "12 abad"]
+        },
+        {
+          id: "s1_new_15",
+          category: "Unit Jam",
+          unitTip: "Tambah nilai jam yang sama",
+          hint: "27 + 35 = 62 jam.",
+          expression: "27 jam + 35 jam",
+          correctAnswer: "62 jam",
+          options: ["62 jam", "60 jam", "52 jam", "64 jam"]
+        },
+        {
+          id: "s1_new_16",
+          category: "Unit Hari",
+          unitTip: "Tolak nilai hari yang sama",
+          hint: "64 - 27 = 37 hari.",
+          expression: "64 hari - 27 hari",
+          correctAnswer: "37 hari",
+          options: ["37 hari", "39 hari", "35 hari", "47 hari"]
+        },
+        {
+          id: "s1_new_17",
+          category: "Unit Minggu",
+          unitTip: "Tambah nilai minggu yang sama",
+          hint: "18 + 24 = 42 minggu.",
+          expression: "18 minggu + 24 minggu",
+          correctAnswer: "42 minggu",
+          options: ["42 minggu", "40 minggu", "44 minggu", "32 minggu"]
+        },
+        {
+          id: "s1_new_18",
+          category: "Unit Bulan",
+          unitTip: "Tolak nilai bulan yang sama",
+          hint: "50 - 24 = 26 bulan.",
+          expression: "50 bulan - 24 bulan",
+          correctAnswer: "26 bulan",
+          options: ["26 bulan", "28 bulan", "24 bulan", "36 bulan"]
+        }
+      ],
+
+      // ----------------------------------------------------
+      // TAHAP 2 (DAHULU TAHAP 1): OPERASI ASAS TAMBAH / TOLAK MASA DUA UNIT (18 Soalan)
+      // ----------------------------------------------------
+      stage2: [
+        {
+          id: "s2_old_01",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Kumpul semula: 16 jam + 14 jam = 30 jam = 1 hari 6 jam.",
+          expression: "2 hari 16 jam + 1 hari 14 jam",
+          correctAnswer: "4 hari 6 jam",
+          options: ["4 hari 6 jam", "3 hari 30 jam", "4 hari 8 jam", "3 hari 6 jam"]
+        },
+        {
+          id: "s2_old_02",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Pinjam 1 hari bernilai 24 jam (8 + 24 = 32 jam).",
+          expression: "5 hari 8 jam - 2 hari 15 jam",
+          correctAnswer: "2 hari 17 jam",
+          options: ["2 hari 17 jam", "3 hari 7 jam", "2 hari 19 jam", "3 hari 17 jam"]
+        },
+        {
+          id: "s2_old_03",
+          category: "Hari & Minggu",
+          unitTip: "1 minggu = 7 hari",
+          hint: "Kumpul semula: 5 hari + 4 hari = 9 hari = 1 minggu 2 hari.",
+          expression: "3 minggu 5 hari + 2 minggu 4 hari",
+          correctAnswer: "6 minggu 2 hari",
+          options: ["6 minggu 2 hari", "5 minggu 9 hari", "6 minggu 1 hari", "5 minggu 2 hari"]
+        },
+        {
+          id: "s2_old_04",
+          category: "Hari & Minggu",
+          unitTip: "1 minggu = 7 hari",
+          hint: "Pinjam 1 minggu bernilai 7 hari (2 + 7 = 9 hari).",
+          expression: "6 minggu 2 hari - 2 minggu 5 hari",
+          correctAnswer: "3 minggu 4 hari",
+          options: ["3 minggu 4 hari", "4 minggu 4 hari", "3 minggu 3 hari", "4 minggu 7 hari"]
+        },
+        {
+          id: "s2_old_05",
+          category: "Bulan & Tahun",
+          unitTip: "1 tahun = 12 bulan",
+          hint: "Kumpul semula: 8 bulan + 7 bulan = 15 bulan = 1 tahun 3 bulan.",
+          expression: "4 tahun 8 bulan + 3 tahun 7 bulan",
+          correctAnswer: "8 tahun 3 bulan",
+          options: ["8 tahun 3 bulan", "7 tahun 15 bulan", "8 tahun 5 bulan", "7 tahun 3 bulan"]
+        },
+        {
+          id: "s2_old_06",
+          category: "Bulan & Tahun",
+          unitTip: "1 tahun = 12 bulan",
+          hint: "Pinjam 1 tahun bernilai 12 bulan (4 + 12 = 16 bulan).",
+          expression: "7 tahun 4 bulan - 3 tahun 9 bulan",
+          correctAnswer: "3 tahun 7 bulan",
+          options: ["3 tahun 7 bulan", "4 tahun 5 bulan", "3 tahun 5 bulan", "4 tahun 7 bulan"]
+        },
+        {
+          id: "s2_old_07",
+          category: "Dekad & Tahun",
+          unitTip: "1 dekad = 10 tahun",
+          hint: "Kumpul semula: 6 tahun + 8 tahun = 14 tahun = 1 dekad 4 tahun.",
+          expression: "4 dekad 6 tahun + 2 dekad 8 tahun",
+          correctAnswer: "7 dekad 4 tahun",
+          options: ["7 dekad 4 tahun", "6 dekad 14 tahun", "7 dekad 2 tahun", "6 dekad 4 tahun"]
+        },
+        {
+          id: "s2_old_08",
+          category: "Dekad & Tahun",
+          unitTip: "1 dekad = 10 tahun",
+          hint: "Pinjam 1 dekad bernilai 10 tahun (3 + 10 = 13 tahun).",
+          expression: "8 dekad 3 tahun - 3 dekad 7 tahun",
+          correctAnswer: "4 dekad 6 tahun",
+          options: ["4 dekad 6 tahun", "5 dekad 6 tahun", "4 dekad 4 tahun", "5 dekad 4 tahun"]
+        },
+        {
+          id: "s2_old_09",
+          category: "Abad & Tahun",
+          unitTip: "1 abad = 100 tahun",
+          hint: "Kumpul semula: 65 tahun + 70 tahun = 135 tahun = 1 abad 35 tahun.",
+          expression: "2 abad 65 tahun + 1 abad 70 tahun",
+          correctAnswer: "4 abad 35 tahun",
+          options: ["4 abad 35 tahun", "3 abad 135 tahun", "4 abad 45 tahun", "3 abad 35 tahun"]
+        },
+        {
+          id: "s2_old_10",
+          category: "Abad & Dekad",
+          unitTip: "1 abad = 10 dekad",
+          hint: "Pinjam 1 abad bernilai 10 dekad (2 + 10 = 12 dekad).",
+          expression: "6 abad 2 dekad - 2 abad 7 dekad",
+          correctAnswer: "3 abad 5 dekad",
+          options: ["3 abad 5 dekad", "4 abad 5 dekad", "3 abad 7 dekad", "4 abad 3 dekad"]
+        },
+        {
+          id: "s2_old_11",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Tambah jam terus: 9 jam + 11 jam = 20 jam (kurang daripada 24 jam).",
+          expression: "3 hari 9 jam + 2 hari 11 jam",
+          correctAnswer: "5 hari 20 jam",
+          options: ["5 hari 20 jam", "5 hari 18 jam", "6 hari 2 jam", "6 hari 20 jam"]
+        },
+        {
+          id: "s2_old_12",
+          category: "Hari & Minggu",
+          unitTip: "1 minggu = 7 hari",
+          hint: "Tambah hari: 4 hari + 5 hari = 9 hari = 1 minggu 2 hari.",
+          expression: "4 minggu 4 hari + 1 minggu 5 hari",
+          correctAnswer: "6 minggu 2 hari",
+          options: ["6 minggu 2 hari", "5 minggu 9 hari", "6 minggu 1 hari", "5 minggu 2 hari"]
+        },
+        {
+          id: "s2_old_13",
+          category: "Bulan & Tahun",
+          unitTip: "1 tahun = 12 bulan",
+          hint: "Pinjam 1 tahun bernilai 12 bulan (2 + 12 = 14 bulan).",
+          expression: "9 tahun 2 bulan - 4 tahun 8 bulan",
+          correctAnswer: "4 tahun 6 bulan",
+          options: ["4 tahun 6 bulan", "5 tahun 6 bulan", "4 tahun 8 bulan", "5 tahun 4 bulan"]
+        },
+        {
+          id: "s2_old_14",
+          category: "Dekad & Tahun",
+          unitTip: "1 dekad = 10 tahun",
+          hint: "Tambah tahun: 5 tahun + 7 tahun = 12 tahun = 1 dekad 2 tahun.",
+          expression: "5 dekad 5 tahun + 2 dekad 7 tahun",
+          correctAnswer: "8 dekad 2 tahun",
+          options: ["8 dekad 2 tahun", "7 dekad 12 tahun", "8 dekad 4 tahun", "7 dekad 2 tahun"]
+        },
+        {
+          id: "s2_old_15",
+          category: "Abad & Tahun",
+          unitTip: "1 abad = 100 tahun",
+          hint: "Pinjam 1 abad bernilai 100 tahun (30 + 100 = 130 tahun).",
+          expression: "5 abad 30 tahun - 2 abad 60 tahun",
+          correctAnswer: "2 abad 70 tahun",
+          options: ["2 abad 70 tahun", "3 abad 70 tahun", "2 abad 40 tahun", "3 abad 30 tahun"]
+        },
+        {
+          id: "s2_old_16",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Pinjam 1 hari bernilai 24 jam (4 + 24 = 28 jam).",
+          expression: "7 hari 4 jam - 3 hari 18 jam",
+          correctAnswer: "3 hari 10 jam",
+          options: ["3 hari 10 jam", "4 hari 10 jam", "3 hari 14 jam", "4 hari 14 jam"]
+        },
+        {
+          id: "s2_old_17",
+          category: "Hari & Minggu",
+          unitTip: "1 minggu = 7 hari",
+          hint: "Pinjam 1 minggu bernilai 7 hari (1 + 7 = 8 hari).",
+          expression: "8 minggu 1 hari - 3 minggu 6 hari",
+          correctAnswer: "4 minggu 2 hari",
+          options: ["4 minggu 2 hari", "5 minggu 2 hari", "4 minggu 3 hari", "5 minggu 5 hari"]
+        },
+        {
+          id: "s2_old_18",
+          category: "Abad & Dekad",
+          unitTip: "1 abad = 10 dekad",
+          hint: "Kumpul semula: 6 dekad + 7 dekad = 13 dekad = 1 abad 3 dekad.",
+          expression: "3 abad 6 dekad + 2 abad 7 dekad",
+          correctAnswer: "6 abad 3 dekad",
+          options: ["6 abad 3 dekad", "5 abad 13 dekad", "6 abad 1 dekad", "5 abad 3 dekad"]
+        }
+      ],
+
+      // ----------------------------------------------------
+      // TAHAP 3 (DAHULU TAHAP 2): OPERASI BERGABUNG TAMBAH & TOLAK MASA (18 Soalan)
+      // ----------------------------------------------------
+      stage3: [
+        {
+          id: "s3_old_01",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Langkah 1: Tambah dapat 4h 6j. Langkah 2: Tolak 1h 8j dapat 2h 22j.",
+          expression: "2 hari 14 jam + 1 hari 16 jam - 1 hari 8 jam",
+          correctAnswer: "2 hari 22 jam",
+          options: ["2 hari 22 jam", "2 hari 18 jam", "3 hari 6 jam", "1 hari 22 jam"]
+        },
+        {
+          id: "s3_old_02",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Langkah 1: Tolak dahulu (pinjam 1h = 24j). Langkah 2: Tambah 1h 18j.",
+          expression: "5 hari 9 jam - 2 hari 15 jam + 1 hari 18 jam",
+          correctAnswer: "4 hari 12 jam",
+          options: ["4 hari 12 jam", "4 hari 6 jam", "3 hari 20 jam", "5 hari 2 jam"]
+        },
+        {
+          id: "s3_old_03",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Tambah jam: 10 + 19 + 7 = 36j = 1h 12j. Bawa 1 hari ke lajur hari.",
+          expression: "3 hari 10 jam + 2 hari 19 jam + 1 hari 7 jam",
+          correctAnswer: "7 hari 12 jam",
+          options: ["7 hari 12 jam", "6 hari 36 jam", "7 hari 6 jam", "8 hari 2 jam"]
+        },
+        {
+          id: "s3_old_04",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Tolak secara berturutan dari kiri ke kanan dengan meminjam 24 jam.",
+          expression: "6 hari 5 jam - 1 hari 18 jam - 2 hari 12 jam",
+          correctAnswer: "1 hari 23 jam",
+          options: ["1 hari 23 jam", "2 hari 15 jam", "2 hari 23 jam", "1 hari 11 jam"]
+        },
+        {
+          id: "s3_old_05",
+          category: "Hari & Minggu",
+          unitTip: "1 minggu = 7 hari",
+          hint: "Langkah 1: 3m 5h + 2m 4h = 6m 2h. Langkah 2: 6m 2h - 1m 6h = 4m 3h.",
+          expression: "3 minggu 5 hari + 2 minggu 4 hari - 1 minggu 6 hari",
+          correctAnswer: "4 minggu 3 hari",
+          options: ["4 minggu 3 hari", "4 minggu 5 hari", "3 minggu 6 hari", "5 minggu 1 hari"]
+        },
+        {
+          id: "s3_old_06",
+          category: "Hari & Minggu",
+          unitTip: "1 minggu = 7 hari",
+          hint: "Pinjam 1 minggu bernilai 7 hari bagi setiap peringkat tolak.",
+          expression: "7 minggu 2 hari - 3 minggu 5 hari - 1 minggu 4 hari",
+          correctAnswer: "2 minggu 0 hari",
+          options: ["2 minggu 0 hari", "2 minggu 3 hari", "1 minggu 6 hari", "3 minggu 1 hari"]
+        },
+        {
+          id: "s3_old_07",
+          category: "Hari & Minggu",
+          unitTip: "1 minggu = 7 hari",
+          hint: "Langkah 1: Tolak dahulu dapat 1m 4h. Langkah 2: Tambah 3m 5h dapat 5m 2h.",
+          expression: "4 minggu 3 hari - 2 minggu 6 hari + 3 minggu 5 hari",
+          correctAnswer: "5 minggu 2 hari",
+          options: ["5 minggu 2 hari", "4 minggu 6 hari", "5 minggu 4 hari", "6 minggu 1 hari"]
+        },
+        {
+          id: "s3_old_08",
+          category: "Hari & Minggu",
+          unitTip: "1 minggu = 7 hari",
+          hint: "Tambah hari: 6 + 5 + 4 = 15 hari = 2 minggu 1 hari (bawa 2 minggu).",
+          expression: "2 minggu 6 hari + 4 minggu 5 hari + 1 minggu 4 hari",
+          correctAnswer: "9 minggu 1 hari",
+          options: ["9 minggu 1 hari", "8 minggu 15 hari", "8 minggu 2 hari", "9 minggu 3 hari"]
+        },
+        {
+          id: "s3_old_09",
+          category: "Bulan & Tahun",
+          unitTip: "1 tahun = 12 bulan",
+          hint: "Langkah 1: Tambah dapat 8t 3b. Langkah 2: Tolak 2t 10b dapat 5t 5b.",
+          expression: "4 tahun 8 bulan + 3 tahun 7 bulan - 2 tahun 10 bulan",
+          correctAnswer: "5 tahun 5 bulan",
+          options: ["5 tahun 5 bulan", "5 tahun 9 bulan", "4 tahun 11 bulan", "6 tahun 2 bulan"]
+        },
+        {
+          id: "s3_old_10",
+          category: "Bulan & Tahun",
+          unitTip: "1 tahun = 12 bulan",
+          hint: "Tolak berturut-turut. Setiap kali pinjam 1 tahun, tambah 12 bulan.",
+          expression: "9 tahun 2 bulan - 4 tahun 8 bulan - 1 tahun 9 bulan",
+          correctAnswer: "2 tahun 9 bulan",
+          options: ["2 tahun 9 bulan", "3 tahun 1 bulan", "2 tahun 7 bulan", "3 tahun 9 bulan"]
+        },
+        {
+          id: "s3_old_11",
+          category: "Bulan & Tahun",
+          unitTip: "1 tahun = 12 bulan",
+          hint: "Tambah bulan: 11 + 6 + 8 = 25 bulan = 2 tahun 1 bulan.",
+          expression: "2 tahun 11 bulan + 5 tahun 6 bulan + 1 tahun 8 bulan",
+          correctAnswer: "10 tahun 1 bulan",
+          options: ["10 tahun 1 bulan", "9 tahun 25 bulan", "9 tahun 1 bulan", "10 tahun 3 bulan"]
+        },
+        {
+          id: "s3_old_12",
+          category: "Dekad & Tahun",
+          unitTip: "1 dekad = 10 tahun",
+          hint: "Langkah 1: Tambah dapat 7d 4t. Langkah 2: Tolak 1d 9t dapat 5d 5t.",
+          expression: "4 dekad 6 tahun + 2 dekad 8 tahun - 1 dekad 9 tahun",
+          correctAnswer: "5 dekad 5 tahun",
+          options: ["5 dekad 5 tahun", "5 dekad 3 tahun", "6 dekad 1 tahun", "4 dekad 8 tahun"]
+        },
+        {
+          id: "s3_old_13",
+          category: "Dekad & Tahun",
+          unitTip: "1 dekad = 10 tahun",
+          hint: "Langkah 1: Tolak dahulu dapat 3d 6t. Langkah 2: Tambah 2d 8t dapat 6d 4t.",
+          expression: "7 dekad 3 tahun - 3 dekad 7 tahun + 2 dekad 8 tahun",
+          correctAnswer: "6 dekad 4 tahun",
+          options: ["6 dekad 4 tahun", "5 dekad 4 tahun", "6 dekad 2 tahun", "5 dekad 6 tahun"]
+        },
+        {
+          id: "s3_old_14",
+          category: "Abad & Tahun",
+          unitTip: "1 abad = 100 tahun",
+          hint: "Langkah 1: 35 + 80 = 115t = 1a 15t. Langkah 2: Tolak 1a 45t.",
+          expression: "2 abad 35 tahun + 1 abad 80 tahun - 1 abad 45 tahun",
+          correctAnswer: "2 abad 70 tahun",
+          options: ["2 abad 70 tahun", "2 abad 50 tahun", "3 abad 15 tahun", "1 abad 90 tahun"]
+        },
+        {
+          id: "s3_old_15",
+          category: "Abad & Dekad",
+          unitTip: "1 abad = 10 dekad",
+          hint: "Langkah 1: Tolak pinjam 10 dekad dapat 2a 7d. Langkah 2: Tambah 1a 8d.",
+          expression: "5 abad 4 dekad - 2 abad 7 dekad + 1 abad 8 dekad",
+          correctAnswer: "4 abad 5 dekad",
+          options: ["4 abad 5 dekad", "4 abad 3 dekad", "3 abad 9 dekad", "5 abad 1 dekad"]
+        },
+        {
+          id: "s3_old_16",
+          category: "Abad, Dekad & Tahun",
+          unitTip: "1a = 10d, 1d = 10t",
+          hint: "Tambah tahun: 5+6+4 = 15t (1d 5t). Tambah dekad: 4+7+2+1 = 14d (1a 4d).",
+          expression: "1 abad 4 dekad 5 tahun + 3 abad 7 dekad 6 tahun + 2 abad 2 dekad 4 tahun",
+          correctAnswer: "7 abad 4 dekad 5 tahun",
+          options: ["7 abad 4 dekad 5 tahun", "6 abad 13 dekad 5 tahun", "7 abad 3 dekad 5 tahun", "8 abad 4 dekad 5 tahun"]
+        },
+        {
+          id: "s3_old_17",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Langkah 1: Tolak dahulu (pinjam 24j) dapat 2h 19j. Langkah 2: Tambah 2h 17j.",
+          expression: "4 hari 15 jam - 1 hari 20 jam + 2 hari 17 jam",
+          correctAnswer: "5 hari 12 jam",
+          options: ["5 hari 12 jam", "5 hari 8 jam", "4 hari 22 jam", "6 hari 2 jam"]
+        },
+        {
+          id: "s3_old_18",
+          category: "Bulan & Tahun",
+          unitTip: "1 tahun = 12 bulan",
+          hint: "Langkah 1: Tolak (pinjam 12b) dapat 6t 6b. Langkah 2: Tambah 3t 10b dapat 10t 4b.",
+          expression: "12 tahun 1 bulan - 5 tahun 7 bulan + 3 tahun 10 bulan",
+          correctAnswer: "10 tahun 4 bulan",
+          options: ["10 tahun 4 bulan", "9 tahun 16 bulan", "10 tahun 2 bulan", "11 tahun 4 bulan"]
+        }
+      ],
+
+      // ----------------------------------------------------
+      // TAHAP 4 (DAHULU TAHAP 3): PENYELESAIAN MASALAH (WORD PROBLEMS) (18 Soalan)
+      // ----------------------------------------------------
+      stage4: [
+        {
+          id: "s4_old_01",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Kira: 2 hari 14 jam + 3 hari 18 jam - 1 hari 20 jam.",
+          expression: "Projek A mengambil masa 2 hari 14 jam. Projek B mengambil masa 3 hari 18 jam. Jika fasa kemasan dipendekkan sebanyak 1 hari 20 jam, berapakah jumlah masa sebenar yang digunakan?",
+          correctAnswer: "4 hari 12 jam",
+          options: ["4 hari 12 jam", "4 hari 8 jam", "5 hari 2 jam", "3 hari 22 jam"]
+        },
+        {
+          id: "s4_old_02",
+          category: "Hari & Minggu",
+          unitTip: "1 minggu = 7 hari",
+          hint: "Kira: 4 minggu 3 hari + 2 minggu 6 hari - 1 minggu 5 hari.",
+          expression: "Kempen membaca berlangsung selama 4 minggu 3 hari dan dilanjutkan 2 minggu 6 hari. Namun cuti rehat selama 1 minggu 5 hari ditolak. Berapakah tempoh kempen yang aktif?",
+          correctAnswer: "5 minggu 4 hari",
+          options: ["5 minggu 4 hari", "5 minggu 2 hari", "6 minggu 1 hari", "4 minggu 6 hari"]
+        },
+        {
+          id: "s4_old_03",
+          category: "Bulan & Tahun",
+          unitTip: "1 tahun = 12 bulan",
+          hint: "Kira: 3 tahun 9 bulan + 2 tahun 8 bulan - 1 tahun 11 bulan.",
+          expression: "Sebuah jambatan dirancang siap dalam 3 tahun 9 bulan. Fasa tambahan mengambil masa 2 tahun 8 bulan, tetapi kerja dipercepatkan 1 tahun 11 bulan. Berapakah tempoh sebenar pembinaan?",
+          correctAnswer: "4 tahun 6 bulan",
+          options: ["4 tahun 6 bulan", "4 tahun 8 bulan", "5 tahun 2 bulan", "3 tahun 10 bulan"]
+        },
+        {
+          id: "s4_old_04",
+          category: "Dekad & Tahun",
+          unitTip: "1 dekad = 10 tahun",
+          hint: "Kira: 5 dekad 4 tahun - 2 dekad 8 tahun + 1 dekad 9 tahun.",
+          expression: "Usia pokok jati ialah 5 dekad 4 tahun. Pokok mangga 2 dekad 8 tahun lebih muda daripadanya. Pokok ru pula 1 dekad 9 tahun lebih tua daripada pokok mangga. Berapakah usia pokok ru?",
+          correctAnswer: "4 dekad 5 tahun",
+          options: ["4 dekad 5 tahun", "4 dekad 3 tahun", "3 dekad 9 tahun", "5 dekad 1 tahun"]
+        },
+        {
+          id: "s4_old_05",
+          category: "Abad & Tahun",
+          unitTip: "1 abad = 100 tahun",
+          hint: "Kira: 2 abad 45 tahun + 1 abad 75 tahun - 1 abad 60 tahun.",
+          expression: "Muzium A berusia 2 abad 45 tahun. Muzium B berusia 1 abad 75 tahun. Berapakah jumlah usia kedua-dua muzium jika ditolak dengan usia galeri moden selama 1 abad 60 tahun?",
+          correctAnswer: "2 abad 60 tahun",
+          options: ["2 abad 60 tahun", "2 abad 40 tahun", "3 abad 20 tahun", "1 abad 80 tahun"]
+        },
+        {
+          id: "s4_old_06",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Kira: 6 hari 6 jam - 2 hari 15 jam - 1 hari 12 jam.",
+          expression: "Ekspedisi mendaki gunung mengambil masa 6 hari 6 jam. Kumpulan Ali selesai 2 hari 15 jam lebih awal daripada jadual, manakala kumpulan Bob selesai 1 hari 12 jam lebih awal daripada kumpulan Ali. Berapakah masa kumpulan Bob?",
+          correctAnswer: "2 hari 3 jam",
+          options: ["2 hari 3 jam", "2 hari 9 jam", "1 hari 21 jam", "3 hari 3 jam"]
+        },
+        {
+          id: "s4_old_07",
+          category: "Hari & Minggu",
+          unitTip: "1 minggu = 7 hari",
+          hint: "Kira: 5 minggu 2 hari - 1 minggu 6 hari + 2 minggu 5 hari.",
+          expression: "Karnival sukan dirancang selama 5 minggu 2 hari. Penutupan awal memendekkan tempoh sebanyak 1 minggu 6 hari, tetapi acara kemuncak ditambah 2 minggu 5 hari. Berapakah tempoh akhir karnival?",
+          correctAnswer: "6 minggu 1 hari",
+          options: ["6 minggu 1 hari", "5 minggu 5 hari", "6 minggu 3 hari", "5 minggu 1 hari"]
+        },
+        {
+          id: "s4_old_08",
+          category: "Bulan & Tahun",
+          unitTip: "1 tahun = 12 bulan",
+          hint: "Kira: 6 tahun 5 bulan - 2 tahun 9 bulan + 1 tahun 10 bulan.",
+          expression: "Sebuah satelit beroperasi selama 6 tahun 5 bulan sebelum terhenti 2 tahun 9 bulan. Kemudian ia diaktifkan semula selama 1 tahun 10 bulan. Berapakah jumlah tempoh satelit itu aktif?",
+          correctAnswer: "5 tahun 6 bulan",
+          options: ["5 tahun 6 bulan", "4 tahun 8 bulan", "5 tahun 4 bulan", "6 tahun 2 bulan"]
+        },
+        {
+          id: "s4_old_09",
+          category: "Dekad & Tahun",
+          unitTip: "1 dekad = 10 tahun",
+          hint: "Kira: 3 dekad 6 tahun + 2 dekad 7 tahun + 1 dekad 8 tahun.",
+          expression: "Tiga fasa pemuliharaan kubu bersejarah masing-masing mengambil 3 dekad 6 tahun, 2 dekad 7 tahun, dan 1 dekad 8 tahun. Berapakah jumlah masa keseluruhan kerja pemuliharaan itu?",
+          correctAnswer: "8 dekad 1 tahun",
+          options: ["8 dekad 1 tahun", "7 dekad 21 tahun", "8 dekad 3 tahun", "7 dekad 11 tahun"]
+        },
+        {
+          id: "s4_old_10",
+          category: "Abad & Dekad",
+          unitTip: "1 abad = 10 dekad",
+          hint: "Kira: 4 abad 3 dekad - 1 abad 7 dekad - 1 abad 8 dekad.",
+          expression: "Sebuah manuskrip purba berusia 4 abad 3 dekad. Ia disimpan di arkib A selama 1 abad 7 dekad dan arkib B selama 1 abad 8 dekad. Berapakah baki tempoh manuskrip itu berada di arkib asal?",
+          correctAnswer: "0 abad 8 dekad",
+          options: ["0 abad 8 dekad", "1 abad 2 dekad", "0 abad 6 dekad", "1 abad 8 dekad"]
+        },
+        {
+          id: "s4_old_11",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Kira: 1 hari 18 jam + 2 hari 14 jam + 1 hari 22 jam.",
+          expression: "Pelayaran bot fasa 1 mengambil 1 hari 18 jam, fasa 2 mengambil 2 hari 14 jam, dan fasa 3 mengambil 1 hari 22 jam. Berapakah jumlah masa pelayaran itu?",
+          correctAnswer: "6 hari 6 jam",
+          options: ["6 hari 6 jam", "5 hari 30 jam", "6 hari 2 jam", "5 hari 18 jam"]
+        },
+        {
+          id: "s4_old_12",
+          category: "Hari & Minggu",
+          unitTip: "1 minggu = 7 hari",
+          hint: "Kira: 8 minggu 1 hari - 3 minggu 4 hari - 2 minggu 5 hari.",
+          expression: "Tempoh latihan berenang ialah 8 minggu 1 hari. Danish cuti sakit selama 3 minggu 4 hari dan cuti rehat 2 minggu 5 hari. Berapakah masa sebenar Danish menjalani latihan?",
+          correctAnswer: "1 minggu 6 hari",
+          options: ["1 minggu 6 hari", "2 minggu 1 hari", "1 minggu 4 hari", "2 minggu 3 hari"]
+        },
+        {
+          id: "s4_old_13",
+          category: "Bulan & Tahun",
+          unitTip: "1 tahun = 12 bulan",
+          hint: "Kira: 5 tahun 7 bulan + 3 tahun 8 bulan + 1 tahun 11 bulan.",
+          expression: "Tiga generasi ahli keluarga menetap di luar negara selama 5 tahun 7 bulan, 3 tahun 8 bulan, dan 1 tahun 11 bulan. Hitung jumlah tempoh menetap mereka di luar negara.",
+          correctAnswer: "11 tahun 2 bulan",
+          options: ["11 tahun 2 bulan", "10 tahun 26 bulan", "11 tahun 4 bulan", "10 tahun 2 bulan"]
+        },
+        {
+          id: "s4_old_14",
+          category: "Dekad & Tahun",
+          unitTip: "1 dekad = 10 tahun",
+          hint: "Kira: 6 dekad 2 tahun - 2 dekad 7 tahun - 1 dekad 9 tahun.",
+          expression: "Sebuah syarikat kereta beroperasi selama 6 dekad 2 tahun. Pengeluaran model X ditolak 2 dekad 7 tahun dan model Y ditolak 1 dekad 9 tahun. Berapakah baki tahun operasi model lain?",
+          correctAnswer: "1 dekad 6 tahun",
+          options: ["1 dekad 6 tahun", "2 dekad 6 tahun", "1 dekad 8 tahun", "2 dekad 4 tahun"]
+        },
+        {
+          id: "s4_old_15",
+          category: "Abad & Tahun",
+          unitTip: "1 abad = 100 tahun",
+          hint: "Kira: 3 abad 20 tahun - 1 abad 85 tahun + 2 abad 40 tahun.",
+          expression: "Istana kota berusia 3 abad 20 tahun. Menara tinjau 1 abad 85 tahun lebih muda daripadanya. Dinding kubu pula 2 abad 40 tahun lebih tua daripada menara tinjau. Berapakah usia dinding kubu?",
+          correctAnswer: "3 abad 75 tahun",
+          options: ["3 abad 75 tahun", "3 abad 65 tahun", "4 abad 15 tahun", "2 abad 95 tahun"]
+        },
+        {
+          id: "s4_old_16",
+          category: "Jam & Hari",
+          unitTip: "1 hari = 24 jam",
+          hint: "Kira: 7 hari 8 jam - 3 hari 14 jam + 1 hari 16 jam.",
+          expression: "Sebuah feri dijadualkan belayar 7 hari 8 jam. Disebabkan ombak kuat, perjalanan terlewat 3 hari 14 jam tetapi dipendekkan semula 1 hari 16 jam menggunakan laluan alternatif. Berapakah tempoh pelayaran feri?",
+          correctAnswer: "5 hari 10 jam",
+          options: ["5 hari 10 jam", "5 hari 6 jam", "4 hari 20 jam", "6 hari 2 jam"]
+        },
+        {
+          id: "s4_old_17",
+          category: "Hari & Minggu",
+          unitTip: "1 minggu = 7 hari",
+          hint: "Kira: 2 minggu 4 hari + 3 minggu 6 hari + 1 minggu 5 hari.",
+          expression: "Projek sukarelawan membersihkan 3 buah pantai mengambil masa 2 minggu 4 hari, 3 minggu 6 hari, dan 1 minggu 5 hari. Berapakah jumlah masa yang dihabiskan bagi ketiga-tiga pantai?",
+          correctAnswer: "8 minggu 1 hari",
+          options: ["8 minggu 1 hari", "7 minggu 15 hari", "8 minggu 3 hari", "7 minggu 6 hari"]
+        },
+        {
+          id: "s4_old_18",
+          category: "Bulan & Tahun",
+          unitTip: "1 tahun = 12 bulan",
+          hint: "Kira: 8 tahun 3 bulan - 3 tahun 9 bulan - 2 tahun 10 bulan.",
+          expression: "Tempoh jaminan mesin kilang ialah 8 tahun 3 bulan. Mesin mengalami kerosakan fasa pertama selama 3 tahun 9 bulan dan fasa kedua 2 tahun 10 bulan. Berapakah baki tempoh jaminan aktif mesin itu?",
+          correctAnswer: "1 tahun 8 bulan",
+          options: ["1 tahun 8 bulan", "2 tahun 6 bulan", "1 tahun 10 bulan", "2 tahun 2 bulan"]
+        }
+      ]
+    };
+
+    /* ========================================================================
+       3. SPEED TIERS DEFINITION & COUNTDOWN ZONES (TOTAL 40s COUNTDOWN)
+       ======================================================================== */
+    const MAX_QUESTION_TIME = 40.0;
+
+    const SPEED_TIERS = [
+      {
+        id: "cheetah",
+        maxElapsed: 8,
+        minRemaining: 32.0,
+        icon: "🐆",
+        name: "Cheetah",
+        label: "Paling Laju (Super Refleks!)",
+        badgeBg: "bg-amber-500",
+        barColor: "bg-gradient-to-r from-amber-400 to-yellow-400",
+        callout: "Zon Cheetah (Laju Maksimum!) ⚡",
+        calloutColor: "text-amber-700 bg-amber-100",
+        feedback: "Luar biasa! Refleks anda sepantas kilat seperti Cheetah yang memburu!"
+      },
+      {
+        id: "lion",
+        maxElapsed: 15,
+        minRemaining: 25.0,
+        icon: "🦁",
+        name: "Singa",
+        label: "Laju (Raja Kepantasan)",
+        badgeBg: "bg-orange-500",
+        barColor: "bg-gradient-to-r from-orange-400 to-amber-500",
+        callout: "Zon Singa (Kepantasan Tinggi!) 🦁",
+        calloutColor: "text-orange-700 bg-orange-100",
+        feedback: "Hebat dan tangkas! Anda mengira dengan pantas dan yakin seperti seekor Singa gagah!"
+      },
+      {
+        id: "buffalo",
+        maxElapsed: 25,
+        minRemaining: 15.0,
+        icon: "🐃",
+        name: "Kerbau",
+        label: "Sederhana Laju (Fokus & Steady)",
+        badgeBg: "bg-emerald-600",
+        barColor: "bg-gradient-to-r from-emerald-400 to-teal-500",
+        callout: "Zon Kerbau (Sederhana & Mantap!) 🐃",
+        calloutColor: "text-emerald-800 bg-emerald-100",
+        feedback: "Bagus! Anda tenang, teliti dan konsisten seperti seekor Kerbau yang gigih!"
+      },
+      {
+        id: "dog",
+        maxElapsed: 40,
+        minRemaining: 0.1,
+        icon: "🐕",
+        name: "Anjing",
+        label: "Santai (Setia Mencuba)",
+        badgeBg: "bg-sky-600",
+        barColor: "bg-gradient-to-r from-sky-400 to-blue-500",
+        callout: "Zon Anjing (Masa Semakin Suntuk!) 🐕",
+        calloutColor: "text-sky-800 bg-sky-100",
+        feedback: "Usaha yang baik! Tingkatkan lagi latihan hafalan asas masa untuk menjadi lebih pantas!"
+      },
+      {
+        id: "turtle",
+        maxElapsed: Infinity,
+        minRemaining: 0.0,
+        icon: "🐢",
+        name: "Kura-kura",
+        label: "Perlahan / Tamat Masa",
+        badgeBg: "bg-slate-500",
+        barColor: "bg-gradient-to-r from-rose-500 to-red-600",
+        callout: "Zon Kura-kura (Tamat Masa!) 🐢",
+        calloutColor: "text-rose-700 bg-rose-100",
+        feedback: "Jangan putus asa! Biar perlahan asalkan tepat. Cuba lagi untuk melonjak ke gred lebih laju!"
+      }
+    ];
+
+    function getTierForRemainingTime(remaining) {
+      if (remaining > 32.0) return SPEED_TIERS[0];
+      if (remaining > 25.0) return SPEED_TIERS[1];
+      if (remaining > 15.0) return SPEED_TIERS[2];
+      if (remaining > 0.0) return SPEED_TIERS[3];
+      return SPEED_TIERS[4];
+    }
+
+    function getTierForAvgElapsed(avgSeconds) {
+      return SPEED_TIERS.find(t => avgSeconds <= t.maxElapsed) || SPEED_TIERS[SPEED_TIERS.length - 1];
+    }
+
+    /* ========================================================================
+       4. QUIZ STATE CONTROLLER (4 TAHAP)
+       ======================================================================== */
+    let currentStage = 1; // 1, 2, 3, or 4
+    let currentQuestionIndex = 0; // 0 to 9
+    let currentStageQuestions = [];
+    let stageScores = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    let stageTimes = { 1: [], 2: [], 3: [], 4: [] };
+    let stageCorrect = { 1: 0, 2: 0, 3: 0, 4: 0 };
+
+    let questionRemainingSec = MAX_QUESTION_TIME;
+    let timerInterval = null;
+    let isQuestionLocked = false;
+    let lastSecondTick = -1;
+
+    // DOM Elements
+    const quizBody = document.getElementById('quiz-body');
+    const stageBadgeIcon = document.getElementById('stage-badge-icon');
+    const stageTag = document.getElementById('stage-tag');
+    const stageNameText = document.getElementById('stage-name-text');
+    const stageDescText = document.getElementById('stage-desc-text');
+    const liveAnimalIcon = document.getElementById('live-animal-icon');
+    const liveAnimalName = document.getElementById('live-animal-name');
+
+    const statProgressText = document.getElementById('stat-progress-text');
+    const statScoreLive = document.getElementById('stat-score-live');
+    const statTimerCountdown = document.getElementById('stat-timer-countdown');
+    const timerPillContainer = document.getElementById('timer-pill-container');
+    const progressBarFill = document.getElementById('progress-bar-fill');
+
+    const countdownBarFill = document.getElementById('countdown-bar-fill');
+    const countdownTierCallout = document.getElementById('countdown-tier-callout');
+
+    const questionCard = document.getElementById('question-card');
+    const categoryName = document.getElementById('category-name');
+    const unitReferenceTag = document.getElementById('unit-reference-tag');
+    const questionPrompt = document.getElementById('question-prompt');
+    const mathExpressionDisplay = document.getElementById('math-expression-display');
+    const optionsContainer = document.getElementById('options-container');
+    const questionHintText = document.getElementById('question-hint-text');
+
+    const modalStageSummary = document.getElementById('modal-stage-summary');
+    const summaryAnimalBadge = document.getElementById('summary-animal-badge');
+    const summaryTierBadge = document.getElementById('summary-tier-badge');
+    const summaryStageTitle = document.getElementById('summary-stage-title');
+    const summaryFeedbackMsg = document.getElementById('summary-feedback-msg');
+    const sumStatAccuracy = document.getElementById('sum-stat-accuracy');
+    const sumStatAvgtime = document.getElementById('sum-stat-avgtime');
+    const sumStatScore = document.getElementById('sum-stat-score');
+    const btnNextStageAction = document.getElementById('btn-next-stage-action');
+    const btnNextStageText = document.getElementById('btn-next-stage-text');
+    const btnReplayStageAction = document.getElementById('btn-replay-stage-action');
+
+    /* ========================================================================
+       5. GAME FLOW & QUESTION SELECTION
+       ======================================================================== */
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function initStage(stageNum) {
+      currentStage = stageNum;
+      currentQuestionIndex = 0;
+      stageScores[currentStage] = 0;
+      stageTimes[currentStage] = [];
+      stageCorrect[currentStage] = 0;
+
+      let pool = [];
+      if (currentStage === 1) {
+        pool = QUESTION_BANK.stage1;
+        quizBody.className = "bg-quiz-stage1 min-h-screen text-slate-800 flex flex-col justify-between relative overflow-x-hidden transition-all duration-500";
+        stageBadgeIcon.textContent = "🎯";
+        stageBadgeIcon.className = "w-11 h-11 rounded-2xl bg-teal-500 text-white font-extrabold flex items-center justify-center text-2xl shadow-sm border border-white";
+        stageTag.className = "text-xs bg-teal-600 text-white font-extrabold px-2.5 py-0.5 rounded-full shadow-sm";
+        stageTag.textContent = "Tahap 1 / 4";
+        stageNameText.textContent = "Operasi Tambah / Tolak Unit Sama Sahaja";
+        stageDescText.textContent = "Jam • Hari • Minggu • Bulan • Tahun • Dekad • Abad";
+      } else if (currentStage === 2) {
+        pool = QUESTION_BANK.stage2;
+        quizBody.className = "bg-quiz-stage2 min-h-screen text-slate-800 flex flex-col justify-between relative overflow-x-hidden transition-all duration-500";
+        stageBadgeIcon.textContent = "⚡";
+        stageBadgeIcon.className = "w-11 h-11 rounded-2xl bg-amber-400 text-white font-extrabold flex items-center justify-center text-2xl shadow-sm border border-white";
+        stageTag.className = "text-xs bg-amber-500 text-white font-extrabold px-2.5 py-0.5 rounded-full shadow-sm";
+        stageTag.textContent = "Tahap 2 / 4";
+        stageNameText.textContent = "Operasi Tambah / Tolak Masa Dua Unit";
+        stageDescText.textContent = "Jam & Hari • Hari & Minggu • Bulan & Tahun • Dekad & Abad";
+      } else if (currentStage === 3) {
+        pool = QUESTION_BANK.stage3;
+        quizBody.className = "bg-quiz-stage3 min-h-screen text-slate-800 flex flex-col justify-between relative overflow-x-hidden transition-all duration-500";
+        stageBadgeIcon.textContent = "⚔️";
+        stageBadgeIcon.className = "w-11 h-11 rounded-2xl bg-orange-500 text-white font-extrabold flex items-center justify-center text-2xl shadow-sm border border-white";
+        stageTag.className = "text-xs bg-orange-600 text-white font-extrabold px-2.5 py-0.5 rounded-full shadow-sm";
+        stageTag.textContent = "Tahap 3 / 4";
+        stageNameText.textContent = "Operasi Bergabung (+ dan -) Tiga Nilai Masa";
+        stageDescText.textContent = "Bentuk Lazim Dua Fasa & Kumpul Semula Dinamik";
+      } else {
+        pool = QUESTION_BANK.stage4;
+        quizBody.className = "bg-quiz-stage4 min-h-screen text-slate-800 flex flex-col justify-between relative overflow-x-hidden transition-all duration-500";
+        stageBadgeIcon.textContent = "🧭";
+        stageBadgeIcon.className = "w-11 h-11 rounded-2xl bg-purple-500 text-white font-extrabold flex items-center justify-center text-2xl shadow-sm border border-white";
+        stageTag.className = "text-xs bg-purple-600 text-white font-extrabold px-2.5 py-0.5 rounded-full shadow-sm";
+        stageTag.textContent = "Tahap 4 / 4";
+        stageNameText.textContent = "Penyelesaian Masalah Nilai Masa Berkonteks";
+        stageDescText.textContent = "Aplikasi Operasi Bergabung Dalam Kehidupan Nyata";
+      }
+
+      currentStageQuestions = shuffleArray(pool).slice(0, 10);
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      if (currentQuestionIndex >= 10) {
+        finishStage();
+        return;
+      }
+
+      isQuestionLocked = false;
+      const q = currentStageQuestions[currentQuestionIndex];
+
+      clearInterval(timerInterval);
+      questionRemainingSec = MAX_QUESTION_TIME;
+      lastSecondTick = Math.ceil(MAX_QUESTION_TIME);
+
+      statProgressText.textContent = `${currentQuestionIndex + 1} / 10`;
+      statScoreLive.textContent = stageScores[currentStage];
+      progressBarFill.style.width = `${((currentQuestionIndex + 1) / 10) * 100}%`;
+
+      categoryName.textContent = q.category;
+      unitReferenceTag.textContent = q.unitTip;
+      questionHintText.textContent = `Tip: ${q.hint}`;
+
+      if (currentStage === 4) {
+        questionPrompt.textContent = "Selesaikan masalah masa berikut:";
+        mathExpressionDisplay.className = "text-sm sm:text-base md:text-lg font-bold text-slate-900 bg-amber-50/90 py-3.5 px-4 rounded-2xl border-2 border-amber-200 shadow-inner text-left leading-relaxed";
+      } else {
+        questionPrompt.textContent = "Kira ayat matematik berikut:";
+        mathExpressionDisplay.className = "text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 font-math bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 py-3.5 px-4 rounded-2xl border-2 border-amber-200 shadow-inner text-center";
+      }
+      mathExpressionDisplay.textContent = q.expression;
+
+      const shuffledOptions = shuffleArray(q.options);
+      optionsContainer.innerHTML = '';
+
+      shuffledOptions.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = "w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-amber-50 border-2 border-amber-200 hover:border-amber-400 text-slate-800 font-extrabold text-sm sm:text-base font-math active:scale-95 transition-all shadow-sm flex items-center justify-between text-left group";
+        btn.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-xl bg-amber-100 group-hover:bg-amber-300 text-amber-800 font-black text-xs flex items-center justify-center transition">
+              ●
+            </span>
+            <span>${opt}</span>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 group-hover:text-amber-500 transition"></i>
+        `;
+        btn.onclick = () => handleAnswerSelect(opt, q.correctAnswer, btn);
+        optionsContainer.appendChild(btn);
+      });
+
+      lucide.createIcons();
+      updateCountdownVisuals(MAX_QUESTION_TIME);
+
+      const startTime = performance.now();
+      timerInterval = setInterval(() => {
+        const elapsed = (performance.now() - startTime) / 1000;
+        questionRemainingSec = Math.max(0, MAX_QUESTION_TIME - elapsed);
+
+        updateCountdownVisuals(questionRemainingSec);
+
+        const currentWholeSec = Math.ceil(questionRemainingSec);
+        if (questionRemainingSec <= 5.0 && currentWholeSec !== lastSecondTick && questionRemainingSec > 0) {
+          lastSecondTick = currentWholeSec;
+          AudioEngine.playTick();
+        }
+
+        if (questionRemainingSec <= 0) {
+          clearInterval(timerInterval);
+          handleTimeOut(q.correctAnswer);
+        }
+      }, 50);
+    }
+
+    function updateCountdownVisuals(remaining) {
+      statTimerCountdown.textContent = `${remaining.toFixed(1)}s`;
+      
+      const pct = Math.max(0, Math.min(100, (remaining / MAX_QUESTION_TIME) * 100));
+      countdownBarFill.style.width = `${pct}%`;
+
+      const currentTier = getTierForRemainingTime(remaining);
+      
+      liveAnimalIcon.textContent = currentTier.icon;
+      liveAnimalName.textContent = currentTier.name;
+
+      countdownBarFill.className = `h-full rounded-lg transition-all duration-75 relative shadow-sm ${currentTier.barColor}`;
+      countdownTierCallout.className = `font-black flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs ${currentTier.calloutColor}`;
+      countdownTierCallout.innerHTML = `<span>${currentTier.callout}</span>`;
+
+      if (remaining <= 6.0 && remaining > 0) {
+        timerPillContainer.classList.add('warning-pulse', 'border-rose-400', 'bg-rose-50');
+        statTimerCountdown.classList.remove('text-amber-800');
+        statTimerCountdown.classList.add('text-rose-600');
+      } else {
+        timerPillContainer.classList.remove('warning-pulse', 'border-rose-400', 'bg-rose-50');
+        statTimerCountdown.classList.remove('text-rose-600');
+        statTimerCountdown.classList.add('text-amber-800');
+      }
+    }
+
+    function handleTimeOut(correct) {
+      if (isQuestionLocked) return;
+      isQuestionLocked = true;
+
+      AudioEngine.playBuzzer();
+      stageTimes[currentStage].push(MAX_QUESTION_TIME);
+
+      const allBtns = optionsContainer.querySelectorAll('button');
+      allBtns.forEach(b => {
+        if (b.textContent.includes(correct)) {
+          b.classList.add('border-emerald-500', 'bg-emerald-100', 'text-emerald-900', 'font-black');
+        } else {
+          b.classList.add('opacity-50');
+        }
+      });
+
+      countdownTierCallout.className = "font-black flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs text-rose-700 bg-rose-100";
+      countdownTierCallout.innerHTML = "<span>Masa Tamat! (Zon Kura-kura) 🐢</span>";
+
+      setTimeout(() => {
+        currentQuestionIndex++;
+        loadQuestion();
+      }, 1500);
+    }
+
+    function handleAnswerSelect(selected, correct, selectedBtn) {
+      if (isQuestionLocked) return;
+      isQuestionLocked = true;
+      clearInterval(timerInterval);
+
+      const elapsedSec = MAX_QUESTION_TIME - questionRemainingSec;
+      stageTimes[currentStage].push(elapsedSec);
+
+      if (selected === correct) {
+        AudioEngine.playClap();
+        try {
+          confetti({
+            particleCount: 55,
+            spread: 60,
+            origin: { y: 0.6 }
+          });
+        } catch(e) {}
+
+        selectedBtn.classList.remove('bg-white', 'border-amber-200');
+        selectedBtn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900', 'glow-active');
+
+        let baseScore = 100;
+        let speedBonus = 0;
+        if (elapsedSec < 8) speedBonus = 80;
+        else if (elapsedSec < 15) speedBonus = 50;
+        else if (elapsedSec < 25) speedBonus = 25;
+        else speedBonus = 10;
+
+        stageScores[currentStage] += (baseScore + speedBonus);
+        stageCorrect[currentStage]++;
+        statScoreLive.textContent = stageScores[currentStage];
+
+        setTimeout(() => {
+          currentQuestionIndex++;
+          loadQuestion();
+        }, 800);
+
+      } else {
+        AudioEngine.playBuzzer();
+
+        selectedBtn.classList.remove('bg-white', 'border-amber-200');
+        selectedBtn.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900', 'shake-anim');
+
+        const allBtns = optionsContainer.querySelectorAll('button');
+        allBtns.forEach(b => {
+          if (b.textContent.includes(correct)) {
+            b.classList.add('border-emerald-500', 'bg-emerald-50');
+          }
+        });
+
+        setTimeout(() => {
+          currentQuestionIndex++;
+          loadQuestion();
+        }, 1200);
+      }
+    }
+
+    /* ========================================================================
+       6. STAGE FINISH & ANIMAL SPEED EVALUATION (4 TAHAP)
+       ======================================================================== */
+    function finishStage() {
+      clearInterval(timerInterval);
+      AudioEngine.playClap();
+
+      try {
+        confetti({
+          particleCount: 120,
+          spread: 90,
+          origin: { y: 0.5 }
+        });
+      } catch(e) {}
+
+      const times = stageTimes[currentStage];
+      const avgTime = times.length > 0 ? (times.reduce((a, b) => a + b, 0) / times.length) : 0;
+      const tier = getTierForAvgElapsed(avgTime);
+
+      summaryAnimalBadge.textContent = tier.icon;
+      summaryTierBadge.className = `text-xs ${tier.badgeBg} text-white font-extrabold px-3 py-1 rounded-full uppercase tracking-wider`;
+      summaryTierBadge.textContent = `GRED: ${tier.name.toUpperCase()} (${tier.label})`;
+
+      summaryStageTitle.textContent = `TAHNIAH! TAHAP ${currentStage} SELESAI!`;
+      summaryFeedbackMsg.textContent = tier.feedback;
+
+      sumStatAccuracy.textContent = `${stageCorrect[currentStage]} / 10`;
+      sumStatAvgtime.textContent = `${avgTime.toFixed(1)}s`;
+      sumStatScore.textContent = stageScores[currentStage];
+
+      if (currentStage < 4) {
+        btnNextStageText.textContent = `Maju ke Tahap ${currentStage + 1} ➔`;
+        btnNextStageAction.onclick = () => {
+          AudioEngine.playClick();
+          modalStageSummary.classList.add('hidden');
+          initStage(currentStage + 1);
+        };
+      } else {
+        btnNextStageText.textContent = "🏆 Tamat Semua 4 Tahap! Main Semula ↺";
+        btnNextStageAction.onclick = () => {
+          AudioEngine.playClick();
+          modalStageSummary.classList.add('hidden');
+          initStage(1);
+        };
+      }
+
+      btnReplayStageAction.onclick = () => {
+        AudioEngine.playClick();
+        modalStageSummary.classList.add('hidden');
+        initStage(currentStage);
+      };
+
+      modalStageSummary.classList.remove('hidden');
+    }
+
+    /* ========================================================================
+       7. AUDIO TOGGLE & APP INITIALIZATION
+       ======================================================================== */
+    const btnSoundToggle = document.getElementById('btn-sound-toggle');
+    const iconSound = document.getElementById('icon-sound');
+
+    btnSoundToggle.addEventListener('click', () => {
+      AudioEngine.enabled = !AudioEngine.enabled;
+      if (AudioEngine.enabled) {
+        iconSound.setAttribute('data-lucide', 'volume-2');
+        btnSoundToggle.classList.remove('text-rose-500');
+        btnSoundToggle.classList.add('text-amber-700');
+        AudioEngine.playClick();
+      } else {
+        iconSound.setAttribute('data-lucide', 'volume-x');
+        btnSoundToggle.classList.remove('text-amber-700');
+        btnSoundToggle.classList.add('text-rose-500');
+      }
+      lucide.createIcons();
+    });
+
+    window.onload = () => {
+      initStage(1);
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>
